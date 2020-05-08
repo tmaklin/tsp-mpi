@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdbool.h>
 #include <float.h>
+#include <math.h>
 
 typedef struct coord {
   float x;
@@ -215,6 +216,46 @@ void check_input(float mutation_prob, size_t pop_size, float migration_prob, siz
   }
 }
 
+int w_srand(float *weights, size_t n_weights) {
+  float sum = 0.0;
+  for (size_t i = 0; i < n_weights; ++i) {
+    sum += 1.0/weights[i];
+  }
+  int max = ceil(sum);
+  int rn = rand() % max;
+  for (size_t i = 0; i < n_weights; ++i) {
+    if (rn < 1.0/weights[i])
+      return i;
+    rn -= 1.0/weights[i];
+  }
+  exit(1); // shouldn't get here
+}
+
+void w_selection(unsigned short* old_pops[], unsigned short* new_pops[], unsigned short pop_size, coord* coords, size_t n_cities) {
+  // Calculate fitness for both populationms
+  float *fits = malloc(2 * pop_size * sizeof(float));
+  for (size_t i = 0; i < pop_size; ++i) {
+    fits[2*i] = pathlen(coords, old_pops[i], n_cities);
+    fits[2*i + 1] = pathlen(coords, new_pops[i], n_cities);
+  }
+
+  for (size_t i = 0; i < pop_size; ++i) {
+    size_t pos = w_srand(fits, 2 * pop_size);
+    bool from_old = (pos % 2) == 0;
+    if (from_old) {
+      for (size_t k = 0; k < n_cities; ++k) {
+	old_pops[i][k] = old_pops[pos/2][k];
+      }
+    } else {
+      for (size_t k = 0; k < n_cities; ++k) {
+	old_pops[i][k] = new_pops[(pos - 1)/2][k];
+      }
+    }
+  }
+
+  free(fits);
+}
+
 int main(int argc, char *argv[]) {
   if (argc < 7) {
     printf("Usage: tsp <mutation probability, float> <n generations, size_t> <population size, size_t> <migration probability, float> <migration size, size_t>\n");
@@ -255,11 +296,19 @@ int main(int argc, char *argv[]) {
       immigration(pops, migration_size, n_cities, pop_size, coords);
     }
 
+    float *fits = malloc(pop_size * sizeof(float));
+    for (size_t i = 0; i < pop_size; ++i) {
+      fits[i] = pathlen(coords, pops[i], n_cities);
+    }
+
     for (size_t j = 0; j < pop_size; ++j) {
-      // Cross two randomly selected pops
-      size_t parent_a = rand() % pop_size;
-      size_t parent_b = rand() % pop_size;
-      breed(pops[parent_a], pops[parent_b], coords, n_cities, new_pops[j]);
+      // Cross self with a randomly selected pop
+      size_t parent_a = j;
+      // Can't mate with self.
+      while (j == parent_a)
+	//	parent_a = w_srand(fits, pop_size);
+	parent_a = rand() % pop_size;
+      breed(pops[parent_a], pops[j], coords, n_cities, new_pops[j]);
 
       // Introduce a mutation with probability mutation_p
       float mutate_p = rand_p();
@@ -271,6 +320,8 @@ int main(int argc, char *argv[]) {
 
     printf("Generation %zu\t", i + 1);
     MostFit(pops, coords, pop_size, n_cities);
+
+    free(fits);
   }
 
   free(coords);

@@ -1,6 +1,6 @@
 GCC=gcc
 CCFLAGS=-O3
-LDFLAGS=-O3
+LDFLAGS=-O3 -lm
 
 tsp: tsp.o
 	$(GCC) -o tsp tsp.o $(LDFLAGS)
