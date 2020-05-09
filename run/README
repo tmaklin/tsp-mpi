@@ -1,0 +1,13 @@
+This file describes the contents of the folder.
+
+The 'input.dat' file contains the example input used in benchmarking
+the program. It contains the positions of 20 nodes on a [0, 1] x [0,
+1] grid, where each row in the file is a city, the first column
+contains the x coordinate and the second column contains the y
+coordinate. The coordinates are separated by spaces.
+
+The 'output.dat' file contains the example output from running the
+program with 128 tasks. The first 128 lines contain each task
+reporting their final, best fitness. The second-to-last line contains
+the fitness of the best solution found across all tasks, and the last
+line contains the corresponding best path across all tasks.

@@ -1,0 +1,38 @@
+# Compilation
+First load the MPI headers using the appropriate command for your
+computing environment. On the ukko2 cluster, this is done by
+typing:
+    module load iimpi
+
+The program can then be compiled by typing:
+    make
+
+which will compile the program with O3 optimization flag enabled using
+the 'mpicc' compiler.
+
+# Execution
+## Input parameters
+The program takes five parameters as input (in order):
+    <char*>  location of the tab-separated coordinates for the input nodes.
+             Each row should contain the two coordinates of one input node.
+    <float>  probability of a mutation event occurring (between 0 and 1).
+    <size_t> number of generations to run the genetic algorithm for.
+    <float>  probability of a migration event occurring (between 0 and 1).
+    <size_t> size of the migrating population.
+
+The numerical values are validated when parsing, and the program will
+exit with a helpfull error message if they are found incorrect. The
+location and accessibility of the input file is *not* validated.
+
+## Run instructions
+The program can be run (in the example with 16 processes) by typing
+    mpirun -np 16 ./tsp-mpi ../run/input.dat 0.75 100 10000 0.1 10
+
+If the program is run without mpirun, it will likely crash with
+cryptic error messages.
+
+# Output
+When run, each task will print its final fitness when
+their run is over. After all tasks have finished, the program will
+print out the fitness of the best path found across all tasks. The
+last line of the output will contain the route taken by the past path.
